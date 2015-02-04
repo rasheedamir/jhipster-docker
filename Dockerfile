@@ -33,8 +33,8 @@ RUN add-apt-repository ppa:chris-lea/node.js
 RUN apt-get update
 RUN apt-get -y install nodejs
 
-# install yeoman
-RUN npm install -g yo
+# install yeoman, bower, grunt-cli & gulp
+RUN npm install -g yo bower grunt-cli gulp
 
 # install JHipster
 RUN npm install -g generator-jhipster@2.1.0
