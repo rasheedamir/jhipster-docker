@@ -23,7 +23,7 @@ RUN update-java-alternatives -s java-8-oracle
 RUN echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> ~/.bashrc
 
 # install utilities
-RUN apt-get -y install vim git sudo zip bzip2 fontconfig curl
+RUN apt-get -y install vim nano git sudo zip bzip2 fontconfig curl
 
 # install maven
 RUN apt-get -y install maven
