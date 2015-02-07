@@ -33,11 +33,16 @@ RUN add-apt-repository ppa:chris-lea/node.js
 RUN apt-get update
 RUN apt-get -y install nodejs
 
-# install latest version of npm
+# upgrade to the latest version of npm
 RUN npm install -g npm@2.4.1
 
+# install compass, sass
+RUN apt-get install ruby
+RUN gem install compass
+RUN gem install sass
+
 # install yeoman
-RUN npm install -g yo
+RUN npm install -g yo bower grunt-cli gulp
 
 # install JHipster
 RUN npm install -g generator-jhipster@2.1.0
