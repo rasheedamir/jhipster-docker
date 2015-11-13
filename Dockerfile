@@ -1,6 +1,10 @@
-# DOCKER-VERSION 0.7.1
-FROM      ubuntu:14.04
-MAINTAINER Julien Dubois <julien.dubois@gmail.com>
+############################################################
+# Dockerfile to run jhipster based web apps
+# Based on phusion Image
+############################################################
+
+FROM phusion/baseimage:0.9.17
+MAINTAINER Rasheed Amir <rasheed@aurorasolutions.io>
 
 # make sure the package repository is up to date
 RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/sources.list
@@ -9,61 +13,112 @@ RUN apt-get -y update
 # install python-software-properties (so you can do add-apt-repository)
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -q python-software-properties software-properties-common
 
-# install SSH server so we can connect multiple times to the container
-RUN apt-get -y install openssh-server && mkdir /var/run/sshd
+#---------- JAVA
 
-# install oracle java from PPA
+# install oracle java 8 from PPA
 RUN add-apt-repository ppa:webupd8team/java -y
 RUN apt-get update
 RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
 RUN apt-get -y install oracle-java8-installer && apt-get clean
 
-# Set oracle java as the default java
+# set oracle java as the default java
 RUN update-java-alternatives -s java-8-oracle
 RUN echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> ~/.bashrc
+
+#---------- Utilities
 
 # install utilities
 RUN apt-get -y install vim nano git sudo zip bzip2 fontconfig curl
 
+#---------- Maven
+
 # install maven
 RUN apt-get -y install maven
 
-# install node.js from PPA
-RUN add-apt-repository ppa:chris-lea/node.js
+#---------- Gradle
+
+# install gradle
+RUN add-apt-repository ppa:cwchien/gradle
 RUN apt-get update
+RUN apt-get -y install gradle
+
+#---------- NodeJs
+
+# install node.js from PPA
+#RUN add-apt-repository ppa:chris-lea/node.js
+
+# Note the new setup script name for Node.js v0.12
+RUN curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+
+RUN apt-get update
+
 RUN apt-get -y install nodejs
 
-# upgrade to the latest version of npm
-RUN npm install -g npm@2.4.1
+#---------- npm
 
-# install compass, sass
-RUN apt-get install ruby
-RUN gem install compass
-RUN gem install sass
+# update npm to the latest version
+RUN npm update -g npm
+
+#---------- Yoeman
 
 # install yeoman
-RUN npm install -g yo bower grunt-cli gulp
+RUN npm install -g yo
 
-# install JHipster
-RUN npm install -g generator-jhipster@2.1.0
+#---------- Bower
+
+# install bower
+RUN npm install -g bower
+
+#---------- Grunt
+
+# install grunt
+RUN npm install -g grunt-cli
+
+#---------- Gulp
+
+# install grunt
+RUN npm install -g gulp
+
+#---------- Compass
+
+RUN apt-get install -y -f ruby-compass
+RUN gem install compass
+
+#---------- Install JHipster
+RUN npm install -g generator-jhipster@2.23.1
+
+#---------- Configure Users
 
 # configure the "jhipster" and "root" users
 RUN echo 'root:jhipster' |chpasswd
 RUN groupadd jhipster && useradd jhipster -s /bin/bash -m -g jhipster -G jhipster && adduser jhipster sudo
 RUN echo 'jhipster:jhipster' |chpasswd
-
-# install the sample app to download all Maven dependencies
-RUN cd /home/jhipster && \
-    wget https://github.com/jhipster/jhipster-sample-app/archive/v2.1.0.zip && \
-    unzip v2.1.0.zip && \
-    rm v2.1.0.zip
-RUN cd /home/jhipster/jhipster-sample-app-2.1.0 && npm install
 RUN cd /home && chown -R jhipster:jhipster /home/jhipster
-RUN cd /home/jhipster/jhipster-sample-app-2.1.0 && sudo -u jhipster mvn dependency:go-offline
 
-# expose the working directory, the Tomcat port, the Grunt server port, the SSHD port, and run SSHD
-VOLUME ["/jhipster"]
+#---------- Expose
+
+# expose the working directory
+VOLUME ["/home/jhipster"]
+
+# expose the tomcat port
 EXPOSE 8080
+
+# expose the grunt server port
 EXPOSE 9000
+
+# expose the gulp server port
+
+# expose the the SSHD port
 EXPOSE 22
-CMD    /usr/sbin/sshd -D
+
+# SSHD
+
+# Baseimage-docker disables the SSH server by default. Add the following to your Dockerfile to enable it:
+RUN rm -f /etc/service/sshd/down
+
+# Regenerate SSH host keys. baseimage-docker does not contain any, so you
+# have to do that yourself. You may also comment out this instruction; the
+# init system will auto-generate one during boot.
+RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
+
+CMD /usr/sbin/sshd -D
