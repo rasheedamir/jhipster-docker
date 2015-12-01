@@ -85,7 +85,10 @@ RUN apt-get install -y -f ruby-compass
 RUN gem install compass
 
 #---------- Install JHipster
-RUN npm install -g generator-jhipster@2.23.1
+RUN npm install -g generator-jhipster@2.24.0
+
+#---------- Install JHipster-UML
+RUN npm install -g jhipster-uml@1.5.2
 
 #---------- Configure Users
 
